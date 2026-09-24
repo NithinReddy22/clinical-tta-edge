@@ -1,0 +1,21 @@
+﻿{
+  "experiment": "source_domain_baseline",
+  "timestamp": "2026-09-24T11:45:00",
+  "dataset": "coco128",
+  "images_evaluated": 128,
+  "model": "yolov8n",
+  "input_resolution": 640,
+  "hardware": {
+    "device": "cpu",
+    "processor": "Intel(R) Core(TM) Ultra 5 225U",
+    "threads": 4
+  },
+  "metrics": {
+    "mAP50": 0.6054,
+    "mAP50_95": 0.4454,
+    "precision": 0.6385,
+    "recall": 0.5361,
+    "latency_per_image_ms": 38.0
+  },
+  "status": "verified"
+}

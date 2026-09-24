@@ -1,0 +1,29 @@
+﻿# Default Configuration for Clinical-TTA-Edge Experiments
+model:
+  name: "yolov8n.pt"
+  imgsz: 640
+  conf_threshold: 0.25
+  iou_threshold: 0.45
+
+hardware:
+  device: "auto" # "cpu", "cuda", or "auto"
+  batch_size: 1
+
+datasets:
+  source: "coco128"
+  targets:
+    - name: "synthetic_contrast"
+      factor: 0.4
+    - name: "synthetic_brightness"
+      factor: 0.5
+    - name: "synthetic_gaussian_blur"
+      kernel: 5
+    - name: "mot17"
+      path: "data/mot17"
+
+tta:
+  method: "tent" # "none", "tent", "shot", "ttt_aux"
+  learning_rate: 0.0001
+  steps_per_batch: 1
+  optimizer: "Adam"
+  target_layers: ["bn", "ln"] # normalization layers only
