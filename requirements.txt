@@ -1,0 +1,9 @@
+﻿ultralytics>=8.0.0
+torch>=2.0.0
+torchvision
+numpy
+opencv-python
+pandas
+matplotlib
+tqdm
+pyyaml
