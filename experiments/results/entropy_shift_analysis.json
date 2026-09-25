@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-09-25T11:41:01.619495+00:00",
+  "model": "yolov8n.pt",
+  "source": {
+    "domain": "source_clean",
+    "yaml_path": "coco128.yaml",
+    "n_images": 128,
+    "total_detections": 5736,
+    "mean_detections_per_image": 44.8125,
+    "mean_conf": 0.10417085886001587,
+    "median_conf": 0.028569238260388374,
+    "std_conf": 0.19233836233615875,
+    "mean_entropy": 0.20467880368232727,
+    "median_entropy": 0.12970493733882904,
+    "std_entropy": 0.17274798452854156,
+    "low_conf_fraction": 0.900976290097629,
+    "high_entropy_fraction": 0.14574616457461645
+  },
+  "targets": {
+    "coco128_synthetic_contrast": {
+      "domain": "coco128_synthetic_contrast",
+      "yaml_path": "experiments/configs/coco128_synthetic_contrast.yaml",
+      "n_images": 128,
+      "total_detections": 5029,
+      "mean_detections_per_image": 39.2890625,
+      "mean_conf": 0.10954778641462326,
+      "median_conf": 0.029005760326981544,
+      "std_conf": 0.19975855946540833,
+      "mean_entropy": 0.20807580649852753,
+      "median_entropy": 0.13126753270626068,
+      "std_entropy": 0.17636573314666748,
+      "low_conf_fraction": 0.8922250944521773,
+      "high_entropy_fraction": 0.15430503082123684
+    },
+    "coco128_synthetic_brightness": {
+      "domain": "coco128_synthetic_brightness",
+      "yaml_path": "experiments/configs/coco128_synthetic_brightness.yaml",
+      "n_images": 128,
+      "total_detections": 5281,
+      "mean_detections_per_image": 41.2578125,
+      "mean_conf": 0.10067251324653625,
+      "median_conf": 0.0274202898144722,
+      "std_conf": 0.18560434877872467,
+      "mean_entropy": 0.2036483883857727,
+      "median_entropy": 0.12563562393188477,
+      "std_entropy": 0.17359481751918793,
+      "low_conf_fraction": 0.9036167392539292,
+      "high_entropy_fraction": 0.14807801552736224
+    },
+    "coco128_synthetic_blur": {
+      "domain": "coco128_synthetic_blur",
+      "yaml_path": "experiments/configs/coco128_synthetic_blur.yaml",
+      "n_images": 128,
+      "total_detections": 4963,
+      "mean_detections_per_image": 38.7734375,
+      "mean_conf": 0.10416124761104584,
+      "median_conf": 0.027502531185746193,
+      "std_conf": 0.19196444749832153,
+      "mean_entropy": 0.20451390743255615,
+      "median_entropy": 0.1256493479013443,
+      "std_entropy": 0.1749614030122757,
+      "low_conf_fraction": 0.9000604473100947,
+      "high_entropy_fraction": 0.14890187386661294
+    },
+    "coco128_synthetic_noise": {
+      "domain": "coco128_synthetic_noise",
+      "yaml_path": "experiments/configs/coco128_synthetic_noise.yaml",
+      "n_images": 128,
+      "total_detections": 4810,
+      "mean_detections_per_image": 37.578125,
+      "mean_conf": 0.08400037884712219,
+      "median_conf": 0.025510871782898903,
+      "std_conf": 0.16179677844047546,
+      "mean_entropy": 0.18853750824928284,
+      "median_entropy": 0.11877314746379852,
+      "std_entropy": 0.16316184401512146,
+      "low_conf_fraction": 0.9257796257796258,
+      "high_entropy_fraction": 0.12328482328482329
+    }
+  },
+  "divergences": {
+    "coco128_synthetic_contrast": {
+      "wasserstein_distance_confidence": 0.005455963378757124,
+      "wasserstein_distance_entropy": 0.003744942253029888,
+      "entropy_increase_pct": 1.6596749419507995
+    },
+    "coco128_synthetic_brightness": {
+      "wasserstein_distance_confidence": 0.0037255898248992744,
+      "wasserstein_distance_entropy": 0.0022875953391035624,
+      "entropy_increase_pct": -0.5034303884997424
+    },
+    "coco128_synthetic_blur": {
+      "wasserstein_distance_confidence": 0.0017220403838275925,
+      "wasserstein_distance_entropy": 0.003071212454033656,
+      "entropy_increase_pct": -0.08056342269180261
+    },
+    "coco128_synthetic_noise": {
+      "wasserstein_distance_confidence": 0.020171236144423475,
+      "wasserstein_distance_entropy": 0.01615761722960202,
+      "entropy_increase_pct": -7.8861587729898055
+    }
+  },
+  "visualization": "experiments/results\\entropy_distribution_comparison.png"
+}

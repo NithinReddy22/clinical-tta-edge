@@ -18,7 +18,7 @@ import json
 import csv
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # ---------------------------------------------------------------------------
 # Runtime imports — requires: pip install ultralytics
@@ -67,7 +67,7 @@ def evaluate(model_path: str, data_yaml: str, split: str = "val", device: str = 
         "data": data_yaml,
         "split": split,
         "device": device,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "mAP50": float(results.box.map50),
         "mAP50_95": float(results.box.map),
         "precision": float(results.box.mp),
@@ -146,7 +146,7 @@ def collect_confidence_entropy(model_path: str, data_yaml: str,
 def save_results(metrics: dict, output_dir: str = "experiments/results"):
     """Save metrics to a CSV log and a JSON snapshot."""
     os.makedirs(output_dir, exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
     # JSON snapshot
     json_path = os.path.join(output_dir, f"eval_{ts}.json")

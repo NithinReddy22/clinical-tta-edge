@@ -1,9 +1,11 @@
-﻿__pycache__/
+__pycache__/
 *.py[cod]
 *.class
 *.pt
 *.onnx
 runs/
 datasets/
+data/
+.venv/
 .vscode/
 .idea/
