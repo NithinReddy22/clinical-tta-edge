@@ -88,6 +88,70 @@ These constraints make the analysis non-trivial even where the core idea is esta
 
 ---
 
+## Architecture & Adaptation Pipeline
+
+<p align="center">
+  <img src="figures/pipeline_architecture.png" alt="Clinical-TTA-Edge Architecture & Pipeline" width="100%">
+</p>
+
+```mermaid
+flowchart TD
+    subgraph S1["1. Unlabeled Target Video Stream"]
+        F["Target Clinical Video Frame x_t (640x640)"]
+        Shifts["Clinical Domain Shifts (Night Ward, Glare, Blur, Noise)"]
+        F --> Shifts
+    end
+
+    subgraph S2["2. Edge YOLOv8 Detector (Parameter Isolation)"]
+        Backbone["CSPDarknet Backbone + PANet Neck (99.7% FROZEN)"]
+        Norm["BatchNorm2d Affine Parameters (gamma, beta in R^10592)"]
+        Head["Multi-Scale Anchor-Free Detection Head (8400 anchors)"]
+        Backbone --> Norm
+        Norm --> Head
+    end
+
+    subgraph S3["3. Proposal Entropy & Selective Edge Gating"]
+        EntropyCalc["Shannon Detection Entropy H(p_t)"]
+        Gate{"Decision Gate: H(p_t) > tau (0.38)?"}
+        EntropyCalc --> Gate
+    end
+
+    subgraph S4["4. TTA Multi-Paradigm Objectives"]
+        TENT["TENT: L = L_entropy (Uncertainty Minimization)"]
+        SHOT["SHOT: L = L_entropy - beta * L_div (Diversity Reg)"]
+        TTT["TTT-Aux: L = L_rot (4-Way Self-Supervised Pretext)"]
+    end
+
+    subgraph S5["5. Fast Optimizer & Rollback Buffer"]
+        Grad["Backward Pass: grad_(gamma, beta) L (Adam, 1-step)"]
+        Rollback["State Checkpoint & Rollback Buffer"]
+        Grad --- Rollback
+    end
+
+    subgraph S6["6. Adapted Edge Output & Live Telemetry"]
+        BBoxes["Robust Detection Bounding Boxes"]
+        HUD["Live HUD Telemetry (FPS, Latency, Entropy Gauge, State)"]
+        BBoxes --> HUD
+    end
+
+    Shifts --> Backbone
+    Head --> EntropyCalc
+
+    Gate -- "NO (H <= tau: In-Distribution)" --> BBoxes
+    Gate -- "YES (H > tau: Shift Detected)" --> TENT
+    Gate -- "YES (H > tau: Shift Detected)" --> SHOT
+    Gate -- "YES (H > tau: Shift Detected)" --> TTT
+
+    TENT --> Grad
+    SHOT --> Grad
+    TTT --> Grad
+
+    Grad -- "Update gamma, beta" --> Norm
+    Norm --> BBoxes
+```
+
+---
+
 ## Repository Structure
 
 github.com/NithinReddy22/clinical-tta-edge

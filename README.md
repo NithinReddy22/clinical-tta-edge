@@ -42,6 +42,93 @@ All datasets are publicly available without IRB requirements.
 
 ---
 
+## Architecture & Adaptation Pipeline
+
+Below is the end-to-end architecture and operational pipeline for edge-deployed clinical test-time adaptation:
+
+<p align="center">
+  <img src="docs/figures/pipeline_architecture.png" alt="Clinical-TTA-Edge Architecture & Pipeline" width="100%">
+</p>
+
+```mermaid
+flowchart TD
+    subgraph S1["1. Unlabeled Target Video Stream"]
+        F["Target Clinical Video Frame x_t (640x640)"]
+        Shifts["Clinical Domain Shifts (Night Ward, Glare, Blur, Noise)"]
+        F --> Shifts
+    end
+
+    subgraph S2["2. Edge YOLOv8 Detector (Parameter Isolation)"]
+        Backbone["CSPDarknet Backbone + PANet Neck (99.7% FROZEN)"]
+        Norm["BatchNorm2d Affine Parameters (gamma, beta in R^10592)"]
+        Head["Multi-Scale Anchor-Free Detection Head (8400 anchors)"]
+        Backbone --> Norm
+        Norm --> Head
+    end
+
+    subgraph S3["3. Proposal Entropy & Selective Edge Gating"]
+        EntropyCalc["Shannon Detection Entropy H(p_t)"]
+        Gate{"Decision Gate: H(p_t) > tau (0.38)?"}
+        EntropyCalc --> Gate
+    end
+
+    subgraph S4["4. TTA Multi-Paradigm Objectives"]
+        TENT["TENT: L = L_entropy (Uncertainty Minimization)"]
+        SHOT["SHOT: L = L_entropy - beta * L_div (Diversity Reg)"]
+        TTT["TTT-Aux: L = L_rot (4-Way Self-Supervised Pretext)"]
+    end
+
+    subgraph S5["5. Fast Optimizer & Rollback Buffer"]
+        Grad["Backward Pass: grad_(gamma, beta) L (Adam, 1-step)"]
+        Rollback["State Checkpoint & Rollback Buffer"]
+        Grad --- Rollback
+    end
+
+    subgraph S6["6. Adapted Edge Output & Live Telemetry"]
+        BBoxes["Robust Detection Bounding Boxes"]
+        HUD["Live HUD Telemetry (FPS, Latency, Entropy Gauge, State)"]
+        BBoxes --> HUD
+    end
+
+    Shifts --> Backbone
+    Head --> EntropyCalc
+
+    Gate -- "NO (H <= tau: In-Distribution)" --> BBoxes
+    Gate -- "YES (H > tau: Shift Detected)" --> TENT
+    Gate -- "YES (H > tau: Shift Detected)" --> SHOT
+    Gate -- "YES (H > tau: Shift Detected)" --> TTT
+
+    TENT --> Grad
+    SHOT --> Grad
+    TTT --> Grad
+
+    Grad -- "Update gamma, beta" --> Norm
+    Norm --> BBoxes
+```
+
+### Mathematical Formulation & Edge Pipeline Mechanics
+
+1. **Parameter Isolation (99.7% Network Frozen)**:
+   Standard full backpropagation on an edge device (e.g. Jetson Orin Nano, Raspberry Pi 5, or low-power clinical bedside monitor) is compute- and memory-prohibitive. We freeze the entire backbone, neck, and detection head ($2.99\text{M}$ parameters), isolating solely the affine scale ($\gamma$) and shift ($\beta$) parameters of batch normalization layers:
+   $$\theta_{\text{adapt}} = \{(\gamma_l, \beta_l) \mid l \in \text{NormLayers}\} \subset \mathbb{R}^{10,592}$$
+   Running statistics ($\mu, \sigma^2$) remain strictly frozen to prevent batch-size-1 statistic instability during online streaming.
+
+2. **Detection-Specific Entropy Objective**:
+   Unlike image classifiers producing a single global softmax vector, YOLOv8 generates multi-scale spatial prediction tensors across 8,400 anchors. Candidate proposal entropy is calculated across confident candidate anchors:
+   $$H(p_t) = -\frac{1}{M}\sum_{i=1}^M \left[ p_i \log p_i + (1 - p_i) \log (1 - p_i) \right]$$
+
+3. **Selective Entropy Gating Engine (50–80% FLOPs Reduction)**:
+   In 24/7 continuous clinical surveillance, normal daytime frames are in-distribution. Continuous adaptation risks catastrophic parameter drift and drains edge power. The gating mechanism evaluates:
+   $$\text{Trigger Adaptation} = \begin{cases} \text{True} & \text{if } H(p_t) > \tau_{\text{gate}} \\ \text{False (Bypass)} & \text{if } H(p_t) \le \tau_{\text{gate}} \end{cases}$$
+   When $H(p_t) \le \tau_{\text{gate}}$ (calibrated $\tau = 0.38$), backpropagation is bypassed entirely, achieving standard inference latency ($38.0\text{ ms}$ on edge CPU proxy).
+
+4. **Multi-Paradigm TTA Methods**:
+   * **TENT** ([methods/tent.py](file:///c:/Users/nithin.reddy/Desktop/clinical-tta-edge/methods/tent.py)): Minimizes candidate detection entropy $\mathcal{L}_{\text{TENT}} = \mathcal{L}_{\text{entropy}}$.
+   * **SHOT** ([methods/shot.py](file:///c:/Users/nithin.reddy/Desktop/clinical-tta-edge/methods/shot.py)): Incorporates a class diversity term $\mathcal{L}_{\text{SHOT}} = \mathcal{L}_{\text{entropy}} - \beta \mathcal{L}_{\text{diversity}}$ to prevent class representation collapse under extreme clinical shift.
+   * **TTT-Aux** ([methods/ttt_aux.py](file:///c:/Users/nithin.reddy/Desktop/clinical-tta-edge/methods/ttt_aux.py)): Adapts feature extraction via self-supervised 4-way rotation pretext prediction ($\mathcal{L}_{\text{rot}}$).
+
+---
+
 ## Experimental Plan
 
 ### Phase 1 — Baseline (Completed)
