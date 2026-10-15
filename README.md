@@ -2,7 +2,7 @@
 
 **Test-Time Adaptation for Edge-Deployed Clinical Vision Models**
 
-> Status: **Active — baseline in progress** (started September 2026)
+> **Status:** Production-Ready Benchmark & Implementation | Continuous Testing
 
 ---
 
